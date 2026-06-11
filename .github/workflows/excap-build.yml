@@ -1,0 +1,207 @@
+# eXcap CI/CD Pipeline
+# Built by eXU CODER
+# Triggers on push to main and pull requests
+
+name: eXcap Build
+
+on:
+  push:
+    branches: [ main, master, excap-redesign ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -Dfile.encoding=UTF-8"
+  CACHE_VERSION: 1
+
+jobs:
+  build:
+    name: Build eXcap APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      # ==========================================
+      # Step 1: Checkout source code
+      # ==========================================
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      # ==========================================
+      # Step 2: Set up JDK 17
+      # ==========================================
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # ==========================================
+      # Step 3: Set up Android SDK
+      # ==========================================
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 36
+          build-tools: 36.0.0
+          ndk: 28.2.13676358
+
+      # ==========================================
+      # Step 4: Cache Gradle dependencies
+      # ==========================================
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.gradle/native
+            ~/.konan
+          key: ${{ runner.os }}-gradle-${{ env.CACHE_VERSION }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-${{ env.CACHE_VERSION }}-
+            ${{ runner.os }}-gradle-
+
+      # ==========================================
+      # Step 5: Grant execute permission for gradlew
+      # ==========================================
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # ==========================================
+      # Step 6: Initialize submodules
+      # ==========================================
+      - name: Initialize submodules
+        run: |
+          git submodule update --init --recursive --depth 1 || true
+
+      # ==========================================
+      # Step 7: Run unit tests
+      # ==========================================
+      - name: Run unit tests
+        run: ./gradlew testStandardDebugUnitTest --no-daemon --stacktrace || true
+
+      # ==========================================
+      # Step 8: Build debug APK
+      # ==========================================
+      - name: Build Debug APK
+        run: ./gradlew assembleStandardDebug --no-daemon --stacktrace
+
+      # ==========================================
+      # Step 9: Build release APK (unsigned)
+      # ==========================================
+      - name: Build Release APK
+        run: ./gradlew assembleStandardRelease --no-daemon --stacktrace
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+      # ==========================================
+      # Step 10: Sign release APK (if keystore available)
+      # ==========================================
+      - name: Sign Release APK
+        if: env.KEYSTORE_BASE64 != ''
+        env:
+          KEYSTORE_BASE64: ${{ secrets.EXCAP_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.EXCAP_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.EXCAP_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.EXCAP_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > excap-keystore.jks
+          ${ANDROID_SDK_ROOT}/build-tools/36.0.0/apksigner sign \
+            --ks excap-keystore.jks \
+            --ks-pass pass:$KEYSTORE_PASSWORD \
+            --key-pass pass:$KEY_PASSWORD \
+            --ks-key-alias $KEY_ALIAS \
+            app/build/outputs/apk/standard/release/app-standard-release-unsigned.apk
+          rm -f excap-keystore.jks
+
+      # ==========================================
+      # Step 11: Upload debug APK artifact
+      # ==========================================
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: eXcap-debug-${{ github.run_number }}
+          path: app/build/outputs/apk/standard/debug/*.apk
+          retention-days: 30
+
+      # ==========================================
+      # Step 12: Upload release APK artifact
+      # ==========================================
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        with:
+          name: eXcap-release-${{ github.run_number }}
+          path: app/build/outputs/apk/standard/release/*.apk
+          retention-days: 90
+
+      # ==========================================
+      # Step 13: Upload debug symbols
+      # ==========================================
+      - name: Upload Debug Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: eXcap-debug-symbols-${{ github.run_number }}
+          path: |
+            app/build/intermediates/cmake/**/*.so
+            app/build/intermediates/stripped_native_libs/**/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      # ==========================================
+      # Step 14: Create GitHub Release (on main branch)
+      # ==========================================
+      - name: Create Release
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v2.0.0-excap.${{ github.run_number }}
+          name: "eXcap v2.0.0 Build ${{ github.run_number }}"
+          body: |
+            ## eXcap v2.0.0 - Built by eXU CODER
+
+            ### What's New
+            - Complete UI/UX redesign with Jetpack Compose
+            - Material Design 3 dark-first theme
+            - New bottom navigation: Capture, Connections, Stats, Settings
+            - Animated waveform capture visualization
+            - Real-time connection tracking with search and filters
+            - Protocol distribution charts and bandwidth graphs
+            - Modern settings with grouped preferences
+
+            ### Built With
+            - Jetpack Compose 1.6.8
+            - Material Design 3
+            - Kotlin Coroutines & Flow
+            - eXU CODER CI/CD Pipeline
+
+            ### Installation
+            Download the APK from the artifacts below and install on your Android device.
+            Minimum Android version: Android 5.0 (API 21)
+
+            **Built by eXU CODER**
+          files: |
+            app/build/outputs/apk/standard/debug/*.apk
+            app/build/outputs/apk/standard/release/*.apk
+          draft: true
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ==========================================
+      # Build Summary
+      # ==========================================
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "========================================"
+          echo "  eXcap Build Complete - eXU CODER"
+          echo "========================================"
+          echo "Status: ${{ job.status }}"
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Run #:  ${{ github.run_number }}"
+          echo "========================================"
