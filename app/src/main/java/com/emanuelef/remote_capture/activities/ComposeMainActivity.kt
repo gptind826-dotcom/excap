@@ -65,6 +65,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.emanuelef.remote_capture.CaptureService
+import com.emanuelef.remote_capture.Utils
 import com.emanuelef.remote_capture.R
 import com.emanuelef.remote_capture.model.AppState
 import com.emanuelef.remote_capture.ui.screens.CaptureScreen
@@ -143,7 +144,7 @@ class ComposeMainActivity : ComponentActivity() {
         LocalBroadcastManager.getInstance(this).registerReceiver(stateReceiver, filter)
 
         // Check initial state
-        _appState.value = if (CaptureService.isServiceActive()) CaptureService.ServiceStatus.STARTED else CaptureService.ServiceStatus.STOPPED
+        _appState.value = if (CaptureService.isServiceActive()) AppState.running else AppState.ready
 
         // Request notification permission on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -161,14 +162,14 @@ class ComposeMainActivity : ComponentActivity() {
 
     private val stateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            _appState.value = if (CaptureService.isServiceActive()) CaptureService.ServiceStatus.STARTED else CaptureService.ServiceStatus.STOPPED
+            _appState.value = if (CaptureService.isServiceActive()) AppState.running else AppState.ready
         }
     }
 
     private fun toggleCapture() {
-        when (if (CaptureService.isServiceActive()) CaptureService.ServiceStatus.STARTED else CaptureService.ServiceStatus.STOPPED) {
+        when (if (CaptureService.isServiceActive()) AppState.running else AppState.ready) {
             AppState.running -> {
-                CaptureService.stopService(this)
+                CaptureService.stopService()
             }
             AppState.starting -> {
                 // Wait
