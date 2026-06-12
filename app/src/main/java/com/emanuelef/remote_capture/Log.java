@@ -36,7 +36,7 @@ public class Log {
     }
 
     public static void writeLog(int logger, int level, @Nullable String tag, @NonNull String message) {
-        if(!eXcap.isUnderTest())
+        if(!ExcapApp.isUnderTest())
             CaptureService.writeLog(logger, level, ((tag != null) ? ("[" + tag + "] ") : "") + message);
     }
 
