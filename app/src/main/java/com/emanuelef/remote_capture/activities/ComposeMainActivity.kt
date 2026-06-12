@@ -143,7 +143,7 @@ class ComposeMainActivity : ComponentActivity() {
         LocalBroadcastManager.getInstance(this).registerReceiver(stateReceiver, filter)
 
         // Check initial state
-        _appState.value = if (CaptureService.isServiceActive()) CaptureService.ServiceStatus.STARTED else CaptureService.ServiceStatus.STATUS
+        _appState.value = if (CaptureService.isServiceActive()) CaptureService.ServiceStatus.STARTED else CaptureService.ServiceStatus.STOPPED
 
         // Request notification permission on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -161,12 +161,12 @@ class ComposeMainActivity : ComponentActivity() {
 
     private val stateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            _appState.value = if (CaptureService.isServiceActive()) CaptureService.ServiceStatus.STARTED else CaptureService.ServiceStatus.STATUS
+            _appState.value = if (CaptureService.isServiceActive()) CaptureService.ServiceStatus.STARTED else CaptureService.ServiceStatus.STOPPED
         }
     }
 
     private fun toggleCapture() {
-        when (if (CaptureService.isServiceActive()) CaptureService.ServiceStatus.STARTED else CaptureService.ServiceStatus.STATUS) {
+        when (if (CaptureService.isServiceActive()) CaptureService.ServiceStatus.STARTED else CaptureService.ServiceStatus.STOPPED) {
             AppState.running -> {
                 CaptureService.stopService(this)
             }
