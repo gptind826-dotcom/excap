@@ -147,7 +147,7 @@ class PcapExporter(private val context: Context) {
         val dos = DataOutputStream(header)
 
         // PCAP Global Header
-        dos.writeInt(PCAP_MAGIC_NUMBER)        // magic number
+        dos.writeInt(PCAP_MAGIC_NUMBER.toInt())        // magic number
         dos.writeShort(PCAP_VERSION_MAJOR)     // version major
         dos.writeShort(PCAP_VERSION_MINOR)     // version minor
         dos.writeInt(0)                         // thiszone
