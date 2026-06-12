@@ -40,6 +40,7 @@ import com.emanuelef.remote_capture.model.AppState
 import com.emanuelef.remote_capture.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlin.math.sin
+import kotlin.math.cos
 
 /* eXcap Capture Screen
  * Built by eXU CODER
@@ -63,7 +64,7 @@ fun CaptureScreen(
     DisposableEffect(Unit) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                val status = if (CaptureService.isServiceActive()) CaptureService.ServiceStatus.STARTED else CaptureService.ServiceStatus.STOPPED
+                val status = if (CaptureService.isServiceActive()) AppState.running else AppState.ready
                 isCapturing = (status == AppState.running)
             }
         }
