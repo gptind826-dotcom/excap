@@ -53,7 +53,7 @@ fun CaptureScreen(
 ) {
     val context = LocalContext.current
     val view = LocalView.current
-    val appState by remember { mutableStateOf(AppState.idle) }
+    val appState by remember { mutableStateOf(AppState.ready) }
     var isCapturing by remember { mutableStateOf(false) }
     var bytesReceived by remember { mutableLongStateOf(0L) }
     var bytesSent by remember { mutableLongStateOf(0L) }
@@ -63,11 +63,11 @@ fun CaptureScreen(
     DisposableEffect(Unit) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                val status = CaptureService.getStatus()
+                val status = if (CaptureService.isServiceActive()) CaptureService.ServiceStatus.STARTED else CaptureService.ServiceStatus.STOPPED
                 isCapturing = (status == AppState.running)
             }
         }
-        val filter = IntentFilter(CaptureService.ACTION_STATE_CHANGED)
+        val filter = IntentFilter("com.emanuelef.remote_capture.CAPTURE_STATUS_CHANGED")
         LocalBroadcastManager.getInstance(context).registerReceiver(receiver, filter)
         onDispose {
             LocalBroadcastManager.getInstance(context).unregisterReceiver(receiver)
