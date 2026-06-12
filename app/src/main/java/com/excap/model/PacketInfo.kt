@@ -1,8 +1,5 @@
 package com.excap.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import androidx.room.Index
 
 @Entity(
     tableName = "captured_packets",
@@ -14,7 +11,6 @@ import androidx.room.Index
     ]
 )
 data class PacketInfo(
-    @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val timestamp: Long = System.currentTimeMillis(),
     val appPackage: String = "",
@@ -43,7 +39,6 @@ data class PacketInfo(
     val tags: String = ""
 )
 
-@Entity(tableName = "app_stats")
 data class AppTrafficStats(
     @PrimaryKey
     val packageName: String = "",
@@ -61,7 +56,6 @@ data class AppTrafficStats(
     val iconBase64: String? = null
 )
 
-@Entity(tableName = "connections")
 data class ConnectionInfo(
     @PrimaryKey
     val connectionId: String = "",
@@ -82,9 +76,7 @@ data class ConnectionInfo(
     val sniHostname: String? = null
 )
 
-@Entity(tableName = "filter_rules")
 data class FilterRule(
-    @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val name: String = "",
     val type: String = "APP",
