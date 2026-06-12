@@ -450,7 +450,6 @@ Built by eXU CODER</string>
     <string name="mitm_addon">MITM Addon</string>
     <string name="mitm_addon_update_available">MITM addon update available</string>
     <string name="n_rules">%1$d rules</string>
-    <string name="ok">OK</string>
     <string name="paid_features_unlocked">All premium features unlocked!</string>
     <string name="payload">Payload</string>
     <string name="pcap_file_action">PCAP File Action</string>
