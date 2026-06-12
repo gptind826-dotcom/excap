@@ -195,7 +195,7 @@ class ComposeMainActivity : ComponentActivity() {
     private fun startCaptureService() {
         // TODO: start capture via CaptureHelper
             // CaptureService.startService is not available
-            Utils.showToast(this, "Start capture not yet implemented in Compose UI")
+            android.widget.Toast.makeText(this, "Start capture not yet implemented", android.widget.Toast.LENGTH_SHORT).show()
     }
 }
 
