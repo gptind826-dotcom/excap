@@ -11,7 +11,7 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.excap.R
+import com.emanuelef.remote_capture.R
 import com.excap.database.AppDatabase
 import com.excap.model.*
 import kotlinx.coroutines.*
