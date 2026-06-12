@@ -1,10 +1,11 @@
 # eXcap CI/CD Pipeline
 # Built by eXU CODER
-# Triggers on push to main and pull requests
+# Triggers on push to main, pull requests, and manual dispatch
 
 name: eXcap Build
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, master, excap-redesign ]
   pull_request:
