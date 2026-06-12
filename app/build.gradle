@@ -59,6 +59,10 @@ android {
         compose = true
     }
 
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.15"
+    }
+
     packagingOptions {
         jniLibs {
             // NOTE: needed to unpack libpcapd.so when installed as app bundle
