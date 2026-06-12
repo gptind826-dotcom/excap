@@ -249,7 +249,7 @@ fun AnimatedWaveform(
                 val path = androidx.compose.ui.graphics.Path()
                 
                 for (angle_i in 0..360 step 5) {
-                    val angle = Math.toRadians(i.toDouble())
+                    val angle = Math.toRadians(angle_i.toDouble())
                     val waveOffset = sin(angle + phase.value + index * 0.5) * (8f + index * 4f)
                     val r = waveRadius + waveOffset.toFloat()
                     val x = centerX + (r * cos(angle.toFloat()))
